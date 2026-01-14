@@ -102,8 +102,9 @@ pub fn get_new_content(filename: &str, refs: &DiffRefs, backend: &dyn VcsBackend
             .get_file_content_at_ref(to, Path::new(filename))
             .unwrap_or_default(),
         DiffRefs::WorkingTree => {
-            // Read from working tree (actual filesystem)
-            fs::read_to_string(filename).unwrap_or_default()
+            // Read from working tree (actual filesystem) using workspace root
+            let full_path = backend.get_workspace_root().join(filename);
+            fs::read_to_string(full_path).unwrap_or_default()
         }
     }
 }
@@ -122,8 +123,7 @@ pub fn load_file_diffs(options: &DiffOptions, backend: &dyn VcsBackend) -> Vec<F
             } else {
                 FileStatus::Modified
             };
-            let is_binary =
-                is_binary_content(&old_content) || is_binary_content(&new_content);
+            let is_binary = is_binary_content(&old_content) || is_binary_content(&new_content);
             FileDiff {
                 filename,
                 old_content,
@@ -182,8 +182,7 @@ pub fn load_pr_file_diffs(pr_info: &PrInfo) -> Result<Vec<FileDiff>, String> {
                 FileStatus::Modified
             };
 
-            let is_binary =
-                is_binary_content(&old_content) || is_binary_content(&new_content);
+            let is_binary = is_binary_content(&old_content) || is_binary_content(&new_content);
             FileDiff {
                 filename,
                 old_content,
@@ -282,8 +281,7 @@ pub fn load_single_commit_diffs(
                 FileStatus::Modified
             };
 
-            let is_binary =
-                is_binary_content(&old_content) || is_binary_content(&new_content);
+            let is_binary = is_binary_content(&old_content) || is_binary_content(&new_content);
             FileDiff {
                 filename,
                 old_content,

@@ -1,4 +1,5 @@
 use std::path::Path;
+use std::path::PathBuf;
 
 use git2::{Commit, DiffFormat, DiffOptions, Repository, StatusOptions, Time, Tree};
 
@@ -783,6 +784,13 @@ impl VcsBackend for GitBackend {
         Ok(commits)
     }
 
+    fn get_workspace_root(&self) -> PathBuf {
+        self.repo
+            .workdir()
+            .map(|p| p.to_path_buf())
+            .unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")))
+    }
+
     fn name(&self) -> &'static str {
         "git"
     }
@@ -1347,7 +1355,7 @@ mod tests {
         let dir = make_temp_dir("git-merge-base");
         let original = std::env::current_dir().expect("get cwd");
 
-        git(&dir, &["init"]);
+        git(&dir, &["init", "-b", "main"]);
         git(&dir, &["config", "user.email", "test@example.com"]);
         git(&dir, &["config", "user.name", "Test User"]);
 

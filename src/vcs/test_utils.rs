@@ -40,7 +40,13 @@ pub fn git(dir: &Path, args: &[&str]) {
 
     match args[0] {
         "init" => {
-            Repository::init(dir).expect("failed to init repo");
+            let mut opts = git2::RepositoryInitOptions::new();
+            if let Some(pos) = args.iter().position(|&a| a == "-b") {
+                if let Some(branch_name) = args.get(pos + 1) {
+                    opts.initial_head(branch_name);
+                }
+            }
+            Repository::init_opts(dir, &opts).expect("failed to init repo");
         }
         "config" if args.len() >= 3 => {
             let repo = Repository::open(dir).expect("failed to open repo");
